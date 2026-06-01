@@ -1,0 +1,6 @@
+.env
+
+# Images
+*.png
+*.jpg
+*.jpeg
