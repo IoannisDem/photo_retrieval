@@ -1,2 +1,2 @@
-# photo_retrieval
+# Photo retrieval
 Person-conditioned photo retrieval system using ViT, CLIP, and vector search.
