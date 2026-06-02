@@ -1,7 +1,7 @@
 import dataclasses
 import enum
 from pathlib import Path
-import utils
+from src import utils
 from typing import TypeAlias
 from src.models import loader
 
@@ -23,7 +23,7 @@ class Version(enum.StrEnum):
 class ModelSpec:
     name: str
     provider: Provider
-    version: Version | None
+    version: Version | None = None
 
 
 class InvalidModelRegistryPath(Exception):
@@ -40,7 +40,7 @@ class ModelRegistry:
 
     @property
     def name_list(self) -> list[str]:
-        return [model_spec.name for model_spec in self._specs]
+        return list(self._indexed_spec.keys())
 
     def get_model_spec(self, name: str) -> ModelSpec:
         spec = self._indexed_spec[name]
