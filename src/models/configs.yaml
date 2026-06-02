@@ -1,0 +1,5 @@
+yolo:
+  provider: ultralytics
+
+clip:
+  provider: openai

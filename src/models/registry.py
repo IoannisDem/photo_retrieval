@@ -3,7 +3,7 @@ import enum
 from pathlib import Path
 import utils
 from typing import TypeAlias
-from functools import cached_property
+from src.models import loader
 
 
 DEFAULT_REGISTRY_PATH = Path("")
@@ -23,7 +23,7 @@ class Version(enum.StrEnum):
 class ModelSpec:
     name: str
     provider: Provider
-    version: Version
+    version: Version | None
 
 
 class InvalidModelRegistryPath(Exception):
@@ -51,54 +51,30 @@ class ModelRegistry:
             raise ValueError(f"ModelSpec with name '{name}' not found")
 
 
+def data_extraction(path: str | Path):
+    file_type = utils.get_file_type(path)
+    match file_type:
+        case utils.FileType.YAML:
+            return utils.load_yaml(path)
+        case utils.FileType.JSON:
+            return utils.load_json(path)
+
+
 RawModelSpec: TypeAlias = dict[str, str]
-RegistryData: TypeAlias = dict[str, RawModelSpec]
 
 
-class ModelRegistryBuilder:
-    def __init__(self) -> None:
-        self._registry_path: Path | None = None
+def _extract_model_spec(content: dict[str, RawModelSpec]) -> list[ModelSpec]:
+    model_spec_list: list[ModelSpec] = []
+    for key, value in content.items():
+        name = key
+        provider = Provider(value["provider"])
+        version = Version(value["version"]) if value.get("version") else None
+        model_spec_list.append(ModelSpec(name, provider, version))
+    return model_spec_list
 
-    def build(self):
-        model_specs = self._load_model_specs()
-        return ModelRegistry(model_specs)
 
-    def with_registry_path(self, registry_path: Path) -> "ModelRegistryBuilder":
-        self._registry_path = registry_path
-        return self
-
-    @property
-    def registry_path(self) -> Path:
-        if self._registry_path:
-            return self._registry_path
-        else:
-            return DEFAULT_REGISTRY_PATH
-
-    def _load_model_specs(self):
-        file_type = utils.get_file_type(self.registry_path)
-        if file_type == utils.FileType.JSON:
-            registry_data = utils.load_json(self.registry_path)
-        elif file_type == utils.FileType.YAML:
-            registry_data = utils.load_yaml(self.registry_path)
-        else:
-            msg = f"This is not a suitable model registry path, it can only be a yaml or json: {self.registry_path}"
-            raise InvalidModelRegistryPath(msg)
-        return self._convert_model_specs(registry_data)
-
-    def _convert_model_specs(self, registry_data: RegistryData) -> list[ModelSpec]:
-        try:
-            return [
-                ModelSpec(
-                    name=key,
-                    provider=Provider(value["provider"]),
-                    version=Version(value["version"]),
-                )
-                for key, value in registry_data.items()
-            ]
-
-        except KeyError as e:
-            missing_key = e.args[0]
-            raise ValueError(
-                f"Model registry entry is missing required field '{missing_key}'. "
-                f"Each model must contain 'provider' and 'version'."
-            )
+def build_model_registry(model_registry_path: str | Path) -> ModelRegistry:
+    content = data_extraction(model_registry_path)
+    model_specs = _extract_model_spec(content)
+    model_registry = ModelRegistry(model_specs)
+    return model_registry
