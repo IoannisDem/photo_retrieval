@@ -3,7 +3,6 @@ import enum
 from pathlib import Path
 from src import utils
 from typing import TypeAlias
-from src.models import loader
 
 
 DEFAULT_REGISTRY_PATH = Path("")
