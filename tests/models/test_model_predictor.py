@@ -1,12 +1,12 @@
 import pytest
+from unittest import mock
 from src.models import model_predictor
 
 
 class ModelMock(model_predictor.Model):
     def predict(self, data):
         return data
-
-
+    
 @pytest.fixture
 def mock_model():
     return ModelMock()
@@ -18,10 +18,13 @@ def simple_pipeline(mock_model):
     pipeline_builder.with_model(mock_model)
     return pipeline_builder.build()
 
-
 @pytest.mark.parametrize(
     "input_data, expected",
-    [pytest.param(1, 1), pytest.param(2, 2), pytest.param(10, 10)],
+    [
+        pytest.param(1, 1),
+        pytest.param(2, 2),
+        pytest.param(10, 10)
+    ]
 )
 def test_simple_pipeline_builder(input_data, expected, simple_pipeline):
     observed = simple_pipeline.predict(input_data)
@@ -30,13 +33,11 @@ def test_simple_pipeline_builder(input_data, expected, simple_pipeline):
 
 class HalfProcessor(model_predictor.Processor):
     def process(self, data):
-        return data // 2
-
+        return data//2
 
 @pytest.fixture
 def mock_processor():
     return HalfProcessor()
-
 
 @pytest.fixture
 def composite_pipeline(mock_model, mock_processor):
@@ -45,10 +46,13 @@ def composite_pipeline(mock_model, mock_processor):
     pipeline_builder.with_processor(mock_processor)
     return pipeline_builder.build()
 
-
 @pytest.mark.parametrize(
     "input_data, expected",
-    [pytest.param(1, 0), pytest.param(2, 1), pytest.param(10, 5)],
+    [
+        pytest.param(1, 0),
+        pytest.param(2, 1),
+        pytest.param(10, 5)
+    ]
 )
 def test_composite_pipeline_builder(input_data, expected, composite_pipeline):
     observed = composite_pipeline.predict(input_data)
