@@ -30,7 +30,11 @@ class Model(abc.ABC, Generic[TInput, TOutput]):
 
 
 class DefaultPipeline(Generic[RawInput, TOutput]):
-    def __init__(self, model: Model, processor: Processor) -> None:
+    def __init__(
+        self,
+        model: Model[TInput, TOutput],
+        processor: Processor[RawInput, TInput],
+    ) -> None:
         self._model = model
         self._processor = processor
 
