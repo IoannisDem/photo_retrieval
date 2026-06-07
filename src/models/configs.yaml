@@ -1,5 +1,3 @@
-yolo:
-  provider: ultralytics
-
 clip:
-  provider: openai
+  provider: huggingface
+  name: "openai/clip-vit-base-patch32"

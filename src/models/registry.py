@@ -12,6 +12,7 @@ class Provider(enum.StrEnum):
     LOCAL = "local"
     ULTRALYTICS = "ultralytics"
     OPENAI = "openai"
+    HUGGINGFACE = "huggingface"
 
 
 class Version(enum.StrEnum):
@@ -20,6 +21,7 @@ class Version(enum.StrEnum):
 
 @dataclasses.dataclass
 class ModelSpec:
+    key_name: str
     name: str
     provider: Provider
     version: Version | None = None
@@ -35,7 +37,7 @@ class InvalidRegistryFormat(Exception):
 
 class ModelRegistry:
     def __init__(self, specs: list[ModelSpec]):
-        self._indexed_spec = {s.name: s for s in specs}
+        self._indexed_spec = {s.key_name: s for s in specs}
 
     @property
     def name_list(self) -> list[str]:
@@ -65,10 +67,11 @@ RawModelSpec: TypeAlias = dict[str, str]
 def _extract_model_spec(content: dict[str, RawModelSpec]) -> list[ModelSpec]:
     model_spec_list: list[ModelSpec] = []
     for key, value in content.items():
-        name = key
+        key_name = key
+        model_name = value["name"]
         provider = Provider(value["provider"])
         version = Version(value["version"]) if value.get("version") else None
-        model_spec_list.append(ModelSpec(name, provider, version))
+        model_spec_list.append(ModelSpec(key_name, model_name, provider, version))
     return model_spec_list
 
 

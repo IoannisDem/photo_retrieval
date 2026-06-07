@@ -6,9 +6,11 @@ class TestModelRegistry:
     TESTCASES = (
         [
             {
-                "clip": registry.ModelSpec("clip", registry.Provider.OPENAI),
-                "yolo": registry.ModelSpec("yolo", registry.Provider.ULTRALYTICS),
-                "vit": registry.ModelSpec("vit", registry.Provider.LOCAL),
+                "clip": registry.ModelSpec("clip", "clip-v1", registry.Provider.OPENAI),
+                "yolo": registry.ModelSpec(
+                    "yolo", "face-yolo", registry.Provider.ULTRALYTICS
+                ),
+                "vit": registry.ModelSpec("vit", "custom-vit", registry.Provider.LOCAL),
             },
             ["clip", "yolo", "vit"],
         ],
