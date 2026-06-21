@@ -6,7 +6,7 @@ import pytest
 import torch
 from PIL import Image
 
-from src.models import model_predictors
+from myml import model_predictors
 
 
 @pytest.fixture

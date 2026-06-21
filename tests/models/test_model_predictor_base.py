@@ -1,5 +1,5 @@
 import pytest
-from src.models import model_predictor_base
+from myml import model_predictor_base
 
 
 class ModelMock(model_predictor_base.Model):

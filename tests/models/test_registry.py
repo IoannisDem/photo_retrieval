@@ -1,5 +1,5 @@
 import pytest
-from src.models import registry
+from myml import registry
 
 
 class TestModelRegistry:

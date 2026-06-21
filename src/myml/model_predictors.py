@@ -7,7 +7,7 @@ from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
 from transformers.modeling_outputs import BaseModelOutputWithPooling
 
-from src.models import model_predictor_base
+from src.myml import model_predictor_base
 
 
 @dataclasses.dataclass
