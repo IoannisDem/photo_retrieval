@@ -5,15 +5,26 @@ import dataclasses
 import torch
 from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
-from transformers.modeling_outputs import BaseModelOutputWithPooling
 
-from src.myml import model_predictor_base
+from myml import model_predictor_base, utils
+from pydantic import BaseModel
 
 
 @dataclasses.dataclass
 class CLIPRawData:
     images: list[Image.Image] | None = None
     texts: list[str] | None = None
+
+
+# json=request.model_dump()
+class CLIPRequest(BaseModel):
+    images: list[str] | None
+    texts: list[str] | None
+
+
+class CLIPResultOutput(BaseModel):
+    image_embeddings: list[list[float]] | None = None
+    text_embeddings: list[list[float]] | None = None
 
 
 @dataclasses.dataclass
@@ -24,8 +35,28 @@ class CLIPInput:
 
 @dataclasses.dataclass
 class CLIPOutput:
-    image_output: BaseModelOutputWithPooling | None = None
-    text_output: BaseModelOutputWithPooling | None = None
+    image_output: torch.Tensor | None = None
+    text_output: torch.Tensor | None = None
+
+
+def clip_request_conversion(clip_raw_data: CLIPRawData) -> CLIPRequest:
+    image_data = (
+        [utils.encode_image(image) for image in clip_raw_data.images]
+        if clip_raw_data.images
+        else None
+    )
+    return CLIPRequest(images=image_data, texts=clip_raw_data.texts)
+
+
+def to_clip_output(result: CLIPResultOutput) -> CLIPOutput:
+    return CLIPOutput(
+        image_output=torch.tensor(result.image_embeddings)
+        if result.image_embeddings is not None
+        else None,
+        text_output=torch.tensor(result.text_embeddings)
+        if result.text_embeddings is not None
+        else None,
+    )
 
 
 class ProcessorCLIP(model_predictor_base.Processor[CLIPRawData, CLIPInput]):

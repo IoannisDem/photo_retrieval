@@ -3,6 +3,15 @@ from pathlib import Path
 import yaml
 import json
 from typing import Any
+import logging
+import base64
+from PIL import Image
+from io import BytesIO
+import dataclasses
+from typing import Literal
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class FileType(enum.StrEnum):
@@ -48,3 +57,32 @@ def load_yaml(path: str | Path) -> dict[str, Any]:
 
     except yaml.YAMLError:
         raise ValueError(f"Invalid YAML format in file: {path}")
+
+
+@dataclasses.dataclass
+class ImageData:
+    content: Image.Image
+    format: Literal["JPEG", "PNG"]
+
+
+def encode_image(image: Image.Image) -> str:
+    buffer = BytesIO()
+    image.save(buffer, format=image.format)
+    return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+
+def decode_image_list(images_b64: list[str]) -> list[Image.Image]:
+    logger.info(f"[DECODE] Decoding {len(images_b64)} images")
+
+    images = []
+    for img_b64 in images_b64:
+        img_bytes = base64.b64decode(img_b64)
+        image = Image.open(BytesIO(img_bytes)).convert("RGB")
+        images.append(image)
+
+    return images
+
+
+def decode_text_list(texts: list[str]) -> list[str]:
+
+    return list(texts)

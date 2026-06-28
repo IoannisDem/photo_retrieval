@@ -1,7 +1,7 @@
 import dataclasses
 import enum
 from pathlib import Path
-from src import utils
+from myml import utils
 from typing import TypeAlias
 
 

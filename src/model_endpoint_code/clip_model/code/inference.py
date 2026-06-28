@@ -1,87 +1,71 @@
-import json
-import base64
 import torch
-import numpy as np
+import logging
 
-from io import BytesIO
-from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
 
-from myml import model_predictor_base, model_predictors
+from myml import model_predictor_base, model_predictors, utils
+from myml import registry
+import os
+import json
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def model_fn(model_dir):
-    # model_name = "openai/clip-vit-base-patch32"
-
-    # clip_model = CLIPModel.from_pretrained(model_name)
-    # processor = CLIPProcessor.from_pretrained(model_name)
-
-    # device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    # clip_model.to(device)
-    # clip_model.eval()
-
-    # pipeline = (
-    #     model_predictor_base.PipelineBuilder()
-    #     .with_model(model_predictors.ModelCLIP(model=clip_model))
-    #     .with_processor(
-    #         model_predictors.ProcessorCLIP(
-    #             processor=processor,
-    #             device=device
-    #         )
-    #     )
-    #     .build()
-    # )
-
-    return model_predictors.CLIPRawData()
+    model_config_path = os.path.join(model_dir, "configs.yaml")
+    model_registry = registry.build_model_registry(model_config_path)
+    model_name = model_registry.get_model_spec("clip").name
+    clip = CLIPModel.from_pretrained(model_name)
+    processor = CLIPProcessor.from_pretrained(model_name)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    clip.to(device)
+    clip.eval()
+    pipeline = (
+        model_predictor_base.PipelineBuilder()
+        .with_model(model_predictors.ModelCLIP(model=clip))
+        .with_processor(
+            model_predictors.ProcessorCLIP(processor=processor, device=device)
+        )
+        .build()
+    )
+    return pipeline
 
 
-def input_fn(request_body, content_type):
-    if content_type != "application/json":
-        raise ValueError(f"Unsupported content type: {content_type}")
+def input_fn(request_body, request_content_type):
+    if isinstance(request_body, (bytes, bytearray)):
+        request_body = request_body.decode("utf-8")
 
     payload = json.loads(request_body)
 
+    images = payload.get("images")
     texts = payload.get("texts")
-    images_b64 = payload.get("images")
 
-    images = None
+    if images is not None:
+        images = utils.decode_image_list(images)
 
-    if images_b64:
-        images = [
-            Image.open(BytesIO(base64.b64decode(img))).convert("RGB")
-            for img in images_b64
-        ]
-
-    return model_predictors.CLIPRawData(images=images, texts=texts)
+    return {
+        "images": images,
+        "texts": texts,
+    }
 
 
-def predict_fn(input_data, pipeline):
-    return pipeline.predict(images=input_data.images, texts=input_data.texts)
-
-
-def output_fn(prediction, accept):
-    if accept != "application/json":
-        raise ValueError(f"Unsupported accept type: {accept}")
-
-    def extract(x):
-        if x is None:
-            return None
-
-        if hasattr(x, "pooler_output") and x.pooler_output is not None:
-            return x.pooler_output.detach().cpu().tolist()
-
-        if torch.is_tensor(x):
-            return x.detach().cpu().tolist()
-
-        if isinstance(x, np.ndarray):
-            return x.tolist()
-
-        return x
-
-    return json.dumps(
-        {
-            "image_embedding": extract(prediction.image_output),
-            "text_embedding": extract(prediction.text_output),
-        }
+def predict_fn(input_data, model):
+    raw_input = model_predictors.CLIPRawData(
+        images=input_data["images"],
+        texts=input_data["texts"],
     )
+    results = model.predict(raw_input)
+    return results
+
+
+def output_fn(prediction, response_content_type):
+    result = model_predictors.CLIPResultOutput(
+        image_embeddings=prediction.image_output.tolist()
+        if prediction.image_output is not None
+        else None,
+        text_embeddings=prediction.text_output.tolist()
+        if prediction.text_output is not None
+        else None,
+    )
+    return result.model_dump_json()

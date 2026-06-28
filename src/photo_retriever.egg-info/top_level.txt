@@ -1,2 +1,0 @@
-model_endpoint_code
-myml
