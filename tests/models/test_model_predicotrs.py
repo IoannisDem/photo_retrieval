@@ -6,7 +6,7 @@ import pytest
 import torch
 from PIL import Image
 
-from myml import model_predictors
+from myml.predictor_models import clip_predictors
 
 
 @pytest.fixture
@@ -59,20 +59,20 @@ def assert_tensor_dict(observed_tensor, expected_tensor):
     "raw_data, expected",
     [
         (
-            model_predictors.CLIPRawData(images=[_IMAGE], texts=None),
-            model_predictors.CLIPInput(images=_IMAGE_TENSOR, texts=None),
+            clip_predictors.CLIPRawData(images=[_IMAGE], texts=None),
+            clip_predictors.CLIPInput(images=_IMAGE_TENSOR, texts=None),
         ),
         (
-            model_predictors.CLIPRawData(images=None, texts=_TEXTS),
-            model_predictors.CLIPInput(images=None, texts=_TEXT_TENSOR),
+            clip_predictors.CLIPRawData(images=None, texts=_TEXTS),
+            clip_predictors.CLIPInput(images=None, texts=_TEXT_TENSOR),
         ),
         (
-            model_predictors.CLIPRawData(images=[_IMAGE], texts=_TEXTS),
-            model_predictors.CLIPInput(images=_IMAGE_TENSOR, texts=_TEXT_TENSOR),
+            clip_predictors.CLIPRawData(images=[_IMAGE], texts=_TEXTS),
+            clip_predictors.CLIPInput(images=_IMAGE_TENSOR, texts=_TEXT_TENSOR),
         ),
         (
-            model_predictors.CLIPRawData(images=None, texts=None),
-            model_predictors.CLIPInput(images=None, texts=None),
+            clip_predictors.CLIPRawData(images=None, texts=None),
+            clip_predictors.CLIPInput(images=None, texts=None),
         ),
     ],
     ids=["images-no_texts", "no_images-texts", "images-texts", "no_images-no_texts"],
@@ -92,7 +92,7 @@ class TestProcessorCLIP:
         return all([images_assert, texts_assert])
 
     def test_process(self, processor_mock, raw_data, expected):
-        processor = model_predictors.ProcessorCLIP(
+        processor = clip_predictors.ProcessorCLIP(
             processor=processor_mock, device="cpu"
         )
         observed = processor.process(raw_data)

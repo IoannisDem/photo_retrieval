@@ -1,0 +1,5 @@
+pillow
+transformers
+safetensors
+pydantic
+pydantic-core

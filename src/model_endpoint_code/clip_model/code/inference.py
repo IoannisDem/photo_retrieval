@@ -3,10 +3,12 @@ import logging
 
 from transformers import CLIPModel, CLIPProcessor
 
-from myml import model_predictor_base, model_predictors, utils
+from myml import model_predictor_base, utils
 from myml import registry
 import os
 import json
+
+from myml.predictor_models import clip_predictors
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -23,9 +25,9 @@ def model_fn(model_dir):
     clip.eval()
     pipeline = (
         model_predictor_base.PipelineBuilder()
-        .with_model(model_predictors.ModelCLIP(model=clip))
+        .with_model(clip_predictors.ModelCLIP(model=clip))
         .with_processor(
-            model_predictors.ProcessorCLIP(processor=processor, device=device)
+            clip_predictors.ProcessorCLIP(processor=processor, device=device)
         )
         .build()
     )
@@ -51,7 +53,7 @@ def input_fn(request_body, request_content_type):
 
 
 def predict_fn(input_data, model):
-    raw_input = model_predictors.CLIPRawData(
+    raw_input = clip_predictors.CLIPRawData(
         images=input_data["images"],
         texts=input_data["texts"],
     )
@@ -60,7 +62,7 @@ def predict_fn(input_data, model):
 
 
 def output_fn(prediction, response_content_type):
-    result = model_predictors.CLIPResultOutput(
+    result = clip_predictors.CLIPResultOutput(
         image_embeddings=prediction.image_output.tolist()
         if prediction.image_output is not None
         else None,

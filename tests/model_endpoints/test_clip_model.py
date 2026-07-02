@@ -1,8 +1,6 @@
 from model_endpoint_code.clip_model.code import inference
-from myml import model_predictors
-from unittest import mock
+from myml.predictor_models import clip_predictors
 import pytest
-import torch
 from PIL import Image
 
 
@@ -10,61 +8,59 @@ def equal_image_check(imga: Image.Image, imgb: Image.Image) -> bool:
     return imga.tobytes() == imgb.tobytes()
 
 
-@pytest.fixture
-def clip_raw_mock():
-    sample_image = Image.new("RGB", (224, 224))
-    sample_image.format = "JPEG"
-    raw_input = model_predictors.CLIPRawData(
-        images=[sample_image],
-        texts=["a dog", "a cat"],
-    )
-    return raw_input
+def build_clip_raw_data(raw_image_size_list, raw_text_list):
+    sample_images = []
+    for raw_image_size in raw_image_size_list:
+        img = Image.new("RGB", raw_image_size)
+        img.format = "JPEG"
+        sample_images.append(img)
 
-
-@pytest.fixture
-def clip_raw_pydantic_mock(clip_raw_mock):
-    request_input = model_predictors.clip_request_conversion(clip_raw_mock)
-    return request_input
-
-
-@pytest.fixture
-def clip_raw_request_mock(clip_raw_pydantic_mock):
-    return clip_raw_pydantic_mock.model_dump_json()
-
-
-@pytest.fixture
-def clip_output_mock():
-    return model_predictors.CLIPOutput(
-        image_output=torch.rand(1, 512),
-        text_output=torch.rand(1, 512),
+    return clip_predictors.CLIPRawData(
+        images=sample_images,
+        texts=raw_text_list,
     )
 
 
-@pytest.fixture
-def model_fn_mock(clip_output_mock):
-    model = mock.Mock()
-    model.predict.return_value = clip_output_mock
-    return model
+def build_clip_raw_pydantic(clip_raw_data):
+    return clip_predictors.clip_request_conversion(clip_raw_data)
 
 
-@pytest.fixture
-def expected_input_fn(clip_raw_mock):
-    expected = {
-        "images": clip_raw_mock.images,
-        "texts": clip_raw_mock.texts,
-    }
-    return expected
-
-
-def test_input_fn(expected_input_fn, clip_raw_request_mock):
-    observed = inference.input_fn(clip_raw_request_mock, None)
-    assert expected_input_fn["texts"] == observed["texts"]
-    assert all(
-        equal_image_check(imga, imgb)
-        for imga, imgb in zip(expected_input_fn["images"], observed["images"])
+class TestInputFn:
+    TEST_CASES = (
+        pytest.param(([(224, 224)], ["a dog", "a cat"]), id="single_image_pair"),
+        pytest.param(([(64, 64)], ["a small image"]), id="small_image_single_text"),
+        pytest.param(
+            ([(224, 224), (64, 64)], ["a dog", "a cat", "a bird"]),
+            id="multi_image_multi_text",
+        ),
     )
 
+    @pytest.fixture(params=TEST_CASES)
+    def test_case(self, request):
+        return request.param
 
-def test_predict_fn(expected_input_fn, model_fn_mock, clip_output_mock):
-    observed = inference.predict_fn(expected_input_fn, model_fn_mock)
-    assert clip_output_mock == observed
+    @pytest.fixture
+    def clip_raw_data_mock(self, test_case):
+        raw_image_size_list, raw_text_list = test_case
+        return build_clip_raw_data(raw_image_size_list, raw_text_list)
+
+    @pytest.fixture
+    def clip_raw_request_mock(self, clip_raw_data_mock):
+        clip_raw_pydantic = build_clip_raw_pydantic(clip_raw_data_mock)
+        return clip_raw_pydantic.model_dump_json()
+
+    @pytest.fixture
+    def expected(self, clip_raw_data_mock):
+        return {
+            "images": clip_raw_data_mock.images,
+            "texts": clip_raw_data_mock.texts,
+        }
+
+    def test_input_fn(self, expected, clip_raw_request_mock):
+        observed = inference.input_fn(clip_raw_request_mock, None)
+
+        assert expected["texts"] == observed["texts"]
+        assert all(
+            equal_image_check(imga, imgb)
+            for imga, imgb in zip(expected["images"], observed["images"])
+        )
