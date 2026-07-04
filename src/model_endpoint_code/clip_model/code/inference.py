@@ -11,7 +11,6 @@ import json
 from myml.predictor_models import clip_predictors
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 def model_fn(model_dir):

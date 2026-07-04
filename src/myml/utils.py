@@ -11,7 +11,6 @@ import dataclasses
 from typing import Literal
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class FileType(enum.StrEnum):
