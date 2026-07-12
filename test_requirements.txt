@@ -66,6 +66,7 @@ markdown-it-py==4.2.0
 markupsafe==3.0.3
 matplotlib==3.11.0
 mdurl==0.1.2
+mirakuru==3.0.2
 ml-dtypes==0.5.4
 mlflow==3.14.0
 mlflow-skinny==3.14.0
@@ -93,10 +94,12 @@ paramiko==5.0.0
 pillow==12.2.0
 platformdirs==4.10.0
 pluggy==1.6.0
+port-for==1.0.0
 prettytable==3.18.0
 propcache==0.5.2
 protobuf==6.33.6
 psutil==7.2.2
+psycopg==3.3.4
 pyarrow==24.0.0
 pyasn1==0.6.3
 pyasn1-modules==0.4.2
@@ -109,6 +112,7 @@ pynacl==1.6.2
 pyparsing==3.3.2
 pyroaring==1.1.0
 pytest==9.0.3
+pytest-postgresql==8.1.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 python-rapidjson==1.23
