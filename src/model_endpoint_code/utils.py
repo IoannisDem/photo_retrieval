@@ -84,3 +84,12 @@ def deploy_model(
     else:
         msg = f"The {model_deployment_configs.endpoint_name} failed to deploy"
         raise FailedEndpointDeployment(msg)
+
+
+@dataclasses.dataclass
+class PostgresCredentials:
+    host: str
+    port: int
+    database: str
+    user: str
+    password: str
