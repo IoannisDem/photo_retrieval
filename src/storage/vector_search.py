@@ -6,6 +6,26 @@ from storage.postgres_client_wrapper import PostgresClientWrapper
 from queries import SEARCH_FACES_BY_EMBEDDING, SEARCH_IMAGES_BY_TEXT
 
 
+class VectorSearch:
+    def __init__(self, database: PostgresClientWrapper) -> None:
+        self._database = database
+
+    def search_images_by_embedding(
+        self, query_embedding: Sequence[float], top_k: int = 50
+    ) -> list[dict]:
+        return search_images_by_embedding(self._database, query_embedding, top_k)
+
+    def search_images_by_text(
+        self, query_embedding: Sequence[float], top_k: int = 50
+    ) -> list[dict]:
+        return search_images_by_text(self._database, query_embedding, top_k)
+
+    def search_faces_by_embedding(
+        self, query_embedding: Sequence[float], top_k: int = 50
+    ) -> list[dict]:
+        return search_faces_by_embedding(self._database, query_embedding, top_k)
+
+
 def _search_images_by_text(
     db: PostgresClientWrapper, query_embedding: Sequence[float], top_k: int = 50
 ) -> list[dict]:
@@ -13,6 +33,18 @@ def _search_images_by_text(
         SEARCH_IMAGES_BY_TEXT,
         {"query_embedding": list(query_embedding), "top_k": top_k},
     )
+
+
+def search_images_by_embedding(
+    db: PostgresClientWrapper, query_embedding: Sequence[float], top_k: int = 50
+) -> list[dict]:
+    return _search_images_by_text(db, query_embedding, top_k)
+
+
+def search_images_by_text(
+    db: PostgresClientWrapper, query_embedding: Sequence[float], top_k: int = 50
+) -> list[dict]:
+    return _search_images_by_text(db, query_embedding, top_k)
 
 
 def _search_faces_by_embedding(
@@ -24,7 +56,13 @@ def _search_faces_by_embedding(
     )
 
 
-def _reciprocal_rank_fusion(
+def search_faces_by_embedding(
+    db: PostgresClientWrapper, query_embedding: Sequence[float], top_k: int = 50
+) -> list[dict]:
+    return _search_faces_by_embedding(db, query_embedding, top_k)
+
+
+def reciprocal_rank_fusion(
     ranked_lists: list[list[dict]], key: str = "image_id", k: int = 60
 ) -> list[tuple[str, float]]:
     """
@@ -54,5 +92,5 @@ def find_best_images(
         db, face_embedding, top_k=candidate_pool_size
     )
 
-    fused = _reciprocal_rank_fusion([image_results, face_results], key="image_id")
+    fused = reciprocal_rank_fusion([image_results, face_results], key="image_id")
     return fused[:top_k]

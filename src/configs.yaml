@@ -1,0 +1,22 @@
+aws:
+  access_key: dummy-access-key
+  secret_key: dummy-secret-key
+  role_arns: dummy-role-arn
+  region: us-east-1
+
+postgres:
+  host: localhost
+  port: 5432
+  database: postgres
+  user: postgres
+  password: dummy-password
+
+s3:
+  bucket: dummy-photo-retrieval-bucket
+  prefix: images
+
+local-models:
+  face_detection_weights: myml/predictor_models/model_weights/face_detection_model.pt
+  face_embedding_weights: myml/predictor_models/model_weights/face_classification_model.onnx
+  clip_model_name: openai/clip-vit-base-patch32
+  device: auto

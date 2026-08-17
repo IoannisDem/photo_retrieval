@@ -5,17 +5,10 @@ from sagemaker.core.helper.session_helper import Session
 from sagemaker.serve import ModelBuilder
 from sagemaker.core import image_uris
 import logging
+from credentials import AWSCredentials, PostgresCredentials
 
 logger = logging.getLogger(__name__)
 load_dotenv()
-
-
-@dataclasses.dataclass
-class AWSCredentials:
-    access_key: str
-    secret_key: str
-    role_arns: str
-    region: str = "us-east-1"
 
 
 def get_credentials(local: bool = False) -> AWSCredentials:
@@ -84,12 +77,3 @@ def deploy_model(
     else:
         msg = f"The {model_deployment_configs.endpoint_name} failed to deploy"
         raise FailedEndpointDeployment(msg)
-
-
-@dataclasses.dataclass
-class PostgresCredentials:
-    host: str
-    port: int
-    database: str
-    user: str
-    password: str

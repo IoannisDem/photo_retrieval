@@ -1,6 +1,7 @@
 INSERT_IMAGE = """
 INSERT INTO images (image_id, image_uri, clip_embedding)
 VALUES (%(image_id)s, %(image_uri)s, %(clip_embedding)s)
+ON CONFLICT (image_uri) DO NOTHING
 RETURNING image_id;
 """
 
@@ -24,8 +25,10 @@ SEARCH_FACES_BY_EMBEDDING = """
 SELECT
     image_id,
     face_id,
+    image_uri,
     1 - (face_embedding <=> %(query_embedding)s::vector) AS similarity
 FROM faces
+JOIN images USING (image_id)
 ORDER BY face_embedding <=> %(query_embedding)s::vector
 LIMIT %(top_k)s;
 """

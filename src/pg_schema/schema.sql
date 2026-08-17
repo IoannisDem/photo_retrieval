@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE images (
     image_id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    image_uri       TEXT NOT NULL,               
+    image_uri       TEXT NOT NULL UNIQUE,
     clip_embedding  vector(512),                
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );

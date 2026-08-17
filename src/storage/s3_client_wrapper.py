@@ -3,13 +3,13 @@ from __future__ import annotations
 import boto3
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
-from model_endpoint_code import utils
+import credentials
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def build_s3_client(aws_cred: utils.AWSCredentials) -> BaseClient:
+def build_s3_client(aws_cred: credentials.AWSCredentials) -> BaseClient:
     s3_client = boto3.client(
         "s3",
         aws_access_key_id=aws_cred.access_key,

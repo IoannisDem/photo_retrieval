@@ -94,6 +94,7 @@ paramiko==5.0.0
 pillow==12.2.0
 platformdirs==4.10.0
 pluggy==1.6.0
+pgvector==0.5.0
 port-for==1.0.0
 prettytable==3.18.0
 propcache==0.5.2
@@ -164,6 +165,7 @@ typing-inspection==0.4.2
 tzdata==2026.2
 urllib3==2.7.0
 uvicorn==0.50.0
+ultralytics==8.4.75
 wcwidth==0.8.2
 werkzeug==3.1.8
 xmltodict==1.0.4

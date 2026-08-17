@@ -4,14 +4,15 @@ import logging
 from typing import Any, Mapping, Sequence
 
 import psycopg
+from pgvector.psycopg import register_vector
 from psycopg.rows import dict_row
 
-from model_endpoint_code import utils
+import credentials
 
 logger = logging.getLogger(__name__)
 
 
-def build_pg_connection(pg_cred: utils.PostgresCredentials) -> psycopg.Connection:
+def build_pg_connection(pg_cred: credentials.PostgresCredentials) -> psycopg.Connection:
     conn = psycopg.connect(
         host=pg_cred.host,
         port=pg_cred.port,
@@ -20,6 +21,7 @@ def build_pg_connection(pg_cred: utils.PostgresCredentials) -> psycopg.Connectio
         password=pg_cred.password,
         autocommit=True,
     )
+    register_vector(conn)
     return conn
 
 
