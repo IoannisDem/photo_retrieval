@@ -5,7 +5,7 @@ from sagemaker.core.helper.session_helper import Session
 from sagemaker.serve import ModelBuilder
 from sagemaker.core import image_uris
 import logging
-from credentials import AWSCredentials, PostgresCredentials
+from credentials import AWSCredentials
 
 logger = logging.getLogger(__name__)
 load_dotenv()
